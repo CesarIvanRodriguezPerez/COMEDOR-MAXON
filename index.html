@@ -2,106 +2,177 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Encuesta de Servicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Opinión del Comedor</title>
+  <!-- Meta para pantalla completa en iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
-    body {
+    html, body {
+      height: 100%;
       margin: 0;
-      background-color: #fff9c4;
-      font-family: Arial, sans-serif;
+      padding: 0;
+    }
+    body {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-      touch-action: manipulation;
+      justify-content: center; /* vertical */
+      align-items: center;     /* horizontal */
+      font-family: Arial, sans-serif;
+      background-color: #FFF9C4;
+      color: #333;
+      padding: 20px;
+      text-align: center;
+      user-select: none;
     }
-
     h1 {
       font-size: 3rem;
-      margin-bottom: 1rem;
+      margin-bottom: 40px;
     }
-
-    .emoji-container {
-      display: flex;
-      gap: 2rem;
-      font-size: 5rem;
+    .emoji {
+      font-size: 10rem;
       cursor: pointer;
+      margin: 30px;
+      transition: transform 0.2s;
     }
-
-    #exportBtn {
-      display: none;
-      margin-top: 2rem;
-      padding: 1rem 2rem;
-      font-size: 1.5rem;
-      background-color: #ffc107;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
+    .emoji:hover {
+      transform: scale(1.2);
     }
-
-    #thanks {
+    .mensaje {
+      margin-top: 30px;
       font-size: 2rem;
-      margin-top: 1.5rem;
+      color: green;
+      min-height: 2.5rem; /* para no mover contenido */
+    }
+    #exportar {
       display: none;
-      color: #4caf50;
+      margin-top: 40px;
+      padding: 15px 30px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background-color: #f0c419;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+      user-select: none;
+    }
+    #exportar:hover {
+      background-color: #d4ac0d;
     }
   </style>
 </head>
 <body>
-  <h1>¿Qué te pareció el servicio?</h1>
-  <div class="emoji-container">
-    <span onclick="guardarRespuesta('Bueno')">😊</span>
-    <span onclick="guardarRespuesta('Regular')">😐</span>
-    <span id="malo" ontouchstart="activarOculto()" onclick="guardarRespuesta('Malo')">😡</span>
+  <h1>¿Cómo fue tu experiencia?</h1>
+  <div>
+    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
+    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
+    <span class="emoji" id="emojiMalo" role="button" aria-label="Malo">😡</span>
   </div>
-  <button id="exportBtn" onclick="exportarResultados()">Exportar respuestas</button>
-  <div id="thanks">¡Gracias por tu respuesta!</div>
+
+  <div class="mensaje" id="mensaje" aria-live="polite"></div>
+
+  <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
-    let respuestas = JSON.parse(localStorage.getItem('respuestas')) || [];
+    let respuestas = [];
 
-    function guardarRespuesta(valor) {
-      respuestas.push(valor);
-      localStorage.setItem('respuestas', JSON.stringify(respuestas));
-      document.getElementById('thanks').style.display = 'block';
+    function guardarOpinion(valor) {
+      const fecha = new Date().toLocaleString();
+      respuestas.push({ opinion: valor, fecha: fecha });
+      mostrarMensaje("¡Gracias por tu opinión!");
+    }
+
+    function mostrarMensaje(texto) {
+      const mensajeDiv = document.getElementById('mensaje');
+      mensajeDiv.textContent = texto;
       setTimeout(() => {
-        document.getElementById('thanks').style.display = 'none';
+        mensajeDiv.textContent = "";
       }, 2000);
     }
 
-    let ocultoVisible = false;
-    function activarOculto() {
-      const btn = document.getElementById('exportBtn');
-      ocultoVisible = !ocultoVisible;
-      btn.style.display = ocultoVisible ? 'block' : 'none';
-    }
+    // Toggle botón exportar al mantener presionada la carita enojada 2 segundos
+    let presionadoTimer;
+    const emojiMalo = document.getElementById('emojiMalo');
 
-    function exportarResultados() {
-      const conteo = {
-        Bueno: 0,
-        Regular: 0,
-        Malo: 0
-      };
-      respuestas.forEach(r => {
-        if (conteo[r] !== undefined) conteo[r]++;
-      });
+    emojiMalo.addEventListener('mousedown', () => {
+      presionadoTimer = setTimeout(() => {
+        const boton = document.getElementById('exportar');
+        if (boton.style.display === 'none' || boton.style.display === '') {
+          boton.style.display = 'inline-block';
+          mostrarMensaje("Modo administrador activado");
+        } else {
+          boton.style.display = 'none';
+          mostrarMensaje("Modo administrador desactivado");
+        }
+      }, 2000);
+    });
 
-      let csv = 'Respuesta,Conteo\n';
-      for (let tipo in conteo) {
-        csv += `${tipo},${conteo[tipo]}\n`;
+    emojiMalo.addEventListener('mouseup', () => {
+      clearTimeout(presionadoTimer);
+      guardarOpinion('Malo');
+    });
+
+    emojiMalo.addEventListener('mouseleave', () => {
+      clearTimeout(presionadoTimer);
+    });
+
+    // Para pantallas táctiles
+    emojiMalo.addEventListener('touchstart', () => {
+      presionadoTimer = setTimeout(() => {
+        const boton = document.getElementById('exportar');
+        if (boton.style.display === 'none' || boton.style.display === '') {
+          boton.style.display = 'inline-block';
+          mostrarMensaje("Modo administrador activado");
+        } else {
+          boton.style.display = 'none';
+          mostrarMensaje("Modo administrador desactivado");
+        }
+      }, 2000);
+    });
+
+    emojiMalo.addEventListener('touchend', () => {
+      clearTimeout(presionadoTimer);
+      guardarOpinion('Malo');
+    });
+
+    emojiMalo.addEventListener('touchcancel', () => {
+      clearTimeout(presionadoTimer);
+    });
+
+    // Exportar CSV con resumen
+    function exportarCSV() {
+      if (respuestas.length === 0) {
+        alert("No hay respuestas para exportar.");
+        return;
       }
 
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const resumen = { Bueno: 0, Regular: 0, Malo: 0 };
+      respuestas.forEach(r => {
+        if (resumen[r.opinion] !== undefined) {
+          resumen[r.opinion]++;
+        }
+      });
+
+      let csv = "Fecha,Respuesta\n";
+      respuestas.forEach(r => {
+        csv += `"${r.fecha}","${r.opinion}"\n`;
+      });
+
+      csv += `\nResumen\n`;
+      csv += `Bueno,${resumen.Bueno}\n`;
+      csv += `Regular,${resumen.Regular}\n`;
+      csv += `Malo,${resumen.Malo}\n`;
+
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', 'resultados_encuesta.csv');
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'respuestas_comedor.csv';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
