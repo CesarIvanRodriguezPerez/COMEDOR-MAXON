@@ -2,17 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  
-  <!-- Para modo pantalla completa en iOS -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  
-  <!-- Referencia al manifest para PWA -->
-  <link rel="manifest" href="manifest.json" />
-  
   <title>Opinión del Comedor</title>
-  
   <style>
     html, body {
       height: 100%;
@@ -22,8 +15,8 @@
     body {
       display: flex;
       flex-direction: column;
-      justify-content: center; /* centra vertical */
-      align-items: center;     /* centra horizontal */
+      justify-content: center;
+      align-items: center;
       font-family: Arial, sans-serif;
       background-color: #FFF9C4;
       color: #333;
@@ -70,22 +63,39 @@
 <body>
   <h1>¿Cómo fue tu experiencia?</h1>
   <div>
-    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
-    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
-    <span class="emoji" id="emojiMalo" role="button" aria-label="Malo">😡</span>
+    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button">😀</span>
+    <span class="emoji" onclick="guardarOpinion('Regular')" role="button">😐</span>
+    <span class="emoji" id="emojiMalo" role="button">😡</span>
   </div>
 
   <div class="mensaje" id="mensaje" aria-live="polite"></div>
-
   <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbweEMBea0kpkFfQ92Zngx3SZNx0zUy6Qh13ln1VQY4h87tmO1armqOXUUOpbnYeAAnmZQ/exec";
     let respuestas = [];
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString();
-      respuestas.push({ opinion: valor, fecha: fecha });
-      mostrarMensaje("¡Gracias por tu opinión!");
+      const data = { opinion: valor, fecha: fecha };
+
+      // Enviar a Google Sheets
+      fetch(scriptURL, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      .then(res => res.text())
+      .then(() => {
+        respuestas.push(data);
+        mostrarMensaje("¡Gracias por tu opinión!");
+      })
+      .catch(err => {
+        mostrarMensaje("Error al enviar, intenta de nuevo.");
+        console.error("Error:", err);
+      });
     }
 
     function mostrarMensaje(texto) {
@@ -102,13 +112,8 @@
     emojiMalo.addEventListener('mousedown', () => {
       presionadoTimer = setTimeout(() => {
         const boton = document.getElementById('exportar');
-        if (boton.style.display === 'none' || boton.style.display === '') {
-          boton.style.display = 'inline-block';
-          mostrarMensaje("Modo administrador activado");
-        } else {
-          boton.style.display = 'none';
-          mostrarMensaje("Modo administrador desactivado");
-        }
+        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
+        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
       }, 2000);
     });
 
@@ -116,35 +121,22 @@
       clearTimeout(presionadoTimer);
       guardarOpinion('Malo');
     });
+    emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
 
-    emojiMalo.addEventListener('mouseleave', () => {
-      clearTimeout(presionadoTimer);
-    });
-
-    // Soporte táctil
+    // Touch
     emojiMalo.addEventListener('touchstart', () => {
       presionadoTimer = setTimeout(() => {
         const boton = document.getElementById('exportar');
-        if (boton.style.display === 'none' || boton.style.display === '') {
-          boton.style.display = 'inline-block';
-          mostrarMensaje("Modo administrador activado");
-        } else {
-          boton.style.display = 'none';
-          mostrarMensaje("Modo administrador desactivado");
-        }
+        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
+        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
       }, 2000);
     });
-
     emojiMalo.addEventListener('touchend', () => {
       clearTimeout(presionadoTimer);
       guardarOpinion('Malo');
     });
+    emojiMalo.addEventListener('touchcancel', () => clearTimeout(presionadoTimer));
 
-    emojiMalo.addEventListener('touchcancel', () => {
-      clearTimeout(presionadoTimer);
-    });
-
-    // Exportar CSV con resumen
     function exportarCSV() {
       if (respuestas.length === 0) {
         alert("No hay respuestas para exportar.");
@@ -152,28 +144,19 @@
       }
 
       const resumen = { Bueno: 0, Regular: 0, Malo: 0 };
-      respuestas.forEach(r => {
-        if (resumen[r.opinion] !== undefined) {
-          resumen[r.opinion]++;
-        }
-      });
+      respuestas.forEach(r => resumen[r.opinion]++);
 
       let csv = "Fecha,Respuesta\n";
       respuestas.forEach(r => {
         csv += `"${r.fecha}","${r.opinion}"\n`;
       });
-
-      csv += `\nResumen\n`;
-      csv += `Bueno,${resumen.Bueno}\n`;
-      csv += `Regular,${resumen.Regular}\n`;
-      csv += `Malo,${resumen.Malo}\n`;
+      csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
 
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'respuestas_comedor.csv';
-      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -182,3 +165,4 @@
   </script>
 </body>
 </html>
+
