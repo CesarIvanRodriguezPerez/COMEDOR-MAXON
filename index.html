@@ -2,178 +2,116 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Opinión del Comedor</title>
-  <!-- Meta para pantalla completa en iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
-    html, body {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-    }
     body {
+      background-color: #fff9c4;
       display: flex;
       flex-direction: column;
-      justify-content: center; /* vertical */
-      align-items: center;     /* horizontal */
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #FFF9C4;
-      color: #333;
-      padding: 20px;
-      text-align: center;
       user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
     }
+
     h1 {
       font-size: 3rem;
+      text-align: center;
       margin-bottom: 40px;
     }
-    .emoji {
-      font-size: 10rem;
+
+    .faces {
+      display: flex;
+      gap: 60px;
+      font-size: 5rem;
       cursor: pointer;
-      margin: 30px;
+    }
+
+    .faces span {
       transition: transform 0.2s;
     }
-    .emoji:hover {
+
+    .faces span:active {
       transform: scale(1.2);
     }
-    .mensaje {
-      margin-top: 30px;
-      font-size: 2rem;
-      color: green;
-      min-height: 2.5rem; /* para no mover contenido */
-    }
-    #exportar {
-      display: none;
+
+    #downloadBtn {
       margin-top: 40px;
-      padding: 15px 30px;
       font-size: 1.5rem;
-      cursor: pointer;
-      background-color: #f0c419;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-      user-select: none;
+      padding: 10px 20px;
+      display: none;
     }
-    #exportar:hover {
-      background-color: #d4ac0d;
+
+    .counts {
+      margin-top: 30px;
+      font-size: 1.5rem;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>¿Cómo fue tu experiencia?</h1>
-  <div>
-    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
-    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
-    <span class="emoji" id="emojiMalo" role="button" aria-label="Malo">😡</span>
+  <h1>¿Qué te pareció el servicio?</h1>
+  <div class="faces">
+    <span onclick="guardarRespuesta('Bueno')">😊</span>
+    <span onclick="guardarRespuesta('Regular')">😐</span>
+    <span onclick="handleEnojado()">😡</span>
   </div>
 
-  <div class="mensaje" id="mensaje" aria-live="polite"></div>
+  <button id="downloadBtn" onclick="descargarCSV()">Descargar resultados</button>
 
-  <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
+  <div class="counts" id="counts"></div>
 
   <script>
-    let respuestas = [];
+    let respuestas = JSON.parse(localStorage.getItem("respuestas")) || [];
+    let botonVisible = false;
 
-    function guardarOpinion(valor) {
-      const fecha = new Date().toLocaleString();
-      respuestas.push({ opinion: valor, fecha: fecha });
-      mostrarMensaje("¡Gracias por tu opinión!");
-    }
-
-    function mostrarMensaje(texto) {
-      const mensajeDiv = document.getElementById('mensaje');
-      mensajeDiv.textContent = texto;
-      setTimeout(() => {
-        mensajeDiv.textContent = "";
-      }, 2000);
-    }
-
-    // Toggle botón exportar al mantener presionada la carita enojada 2 segundos
-    let presionadoTimer;
-    const emojiMalo = document.getElementById('emojiMalo');
-
-    emojiMalo.addEventListener('mousedown', () => {
-      presionadoTimer = setTimeout(() => {
-        const boton = document.getElementById('exportar');
-        if (boton.style.display === 'none' || boton.style.display === '') {
-          boton.style.display = 'inline-block';
-          mostrarMensaje("Modo administrador activado");
-        } else {
-          boton.style.display = 'none';
-          mostrarMensaje("Modo administrador desactivado");
-        }
-      }, 2000);
-    });
-
-    emojiMalo.addEventListener('mouseup', () => {
-      clearTimeout(presionadoTimer);
-      guardarOpinion('Malo');
-    });
-
-    emojiMalo.addEventListener('mouseleave', () => {
-      clearTimeout(presionadoTimer);
-    });
-
-    // Para pantallas táctiles
-    emojiMalo.addEventListener('touchstart', () => {
-      presionadoTimer = setTimeout(() => {
-        const boton = document.getElementById('exportar');
-        if (boton.style.display === 'none' || boton.style.display === '') {
-          boton.style.display = 'inline-block';
-          mostrarMensaje("Modo administrador activado");
-        } else {
-          boton.style.display = 'none';
-          mostrarMensaje("Modo administrador desactivado");
-        }
-      }, 2000);
-    });
-
-    emojiMalo.addEventListener('touchend', () => {
-      clearTimeout(presionadoTimer);
-      guardarOpinion('Malo');
-    });
-
-    emojiMalo.addEventListener('touchcancel', () => {
-      clearTimeout(presionadoTimer);
-    });
-
-    // Exportar CSV con resumen
-    function exportarCSV() {
-      if (respuestas.length === 0) {
-        alert("No hay respuestas para exportar.");
-        return;
-      }
-
-      const resumen = { Bueno: 0, Regular: 0, Malo: 0 };
-      respuestas.forEach(r => {
-        if (resumen[r.opinion] !== undefined) {
-          resumen[r.opinion]++;
-        }
+    function guardarRespuesta(respuesta) {
+      const ahora = new Date();
+      respuestas.push({
+        respuesta,
+        fecha: ahora.toLocaleDateString(),
+        hora: ahora.toLocaleTimeString()
       });
-
-      let csv = "Fecha,Respuesta\n";
-      respuestas.forEach(r => {
-        csv += `"${r.fecha}","${r.opinion}"\n`;
-      });
-
-      csv += `\nResumen\n`;
-      csv += `Bueno,${resumen.Bueno}\n`;
-      csv += `Regular,${resumen.Regular}\n`;
-      csv += `Malo,${resumen.Malo}\n`;
-
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'respuestas_comedor.csv';
-      a.style.display = 'none';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      localStorage.setItem("respuestas", JSON.stringify(respuestas));
+      actualizarConteo();
     }
+
+    function handleEnojado() {
+      guardarRespuesta('Malo');
+      botonVisible = !botonVisible;
+      document.getElementById('downloadBtn').style.display = botonVisible ? 'block' : 'none';
+    }
+
+    function descargarCSV() {
+      const encabezados = ['Respuesta', 'Fecha', 'Hora'];
+      const filas = respuestas.map(r => [r.respuesta, r.fecha, r.hora]);
+      let csvContent = encabezados.join(",") + "\n" +
+        filas.map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "respuestas_comedor.csv";
+      link.click();
+    }
+
+    function actualizarConteo() {
+      const conteo = { Bueno: 0, Regular: 0, Malo: 0 };
+      respuestas.forEach(r => conteo[r.respuesta]++);
+      document.getElementById("counts").innerHTML = `
+        😊 Bueno: ${conteo.Bueno} &nbsp;&nbsp;&nbsp;
+        😐 Regular: ${conteo.Regular} &nbsp;&nbsp;&nbsp;
+        😡 Malo: ${conteo.Malo}
+      `;
+    }
+
+    actualizarConteo();
   </script>
 </body>
 </html>
