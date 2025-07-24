@@ -72,7 +72,7 @@
   <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbweEMBea0kpkFfQ92Zngx3SZNx0zUy6Qh13ln1VQY4h87tmO1armqOXUUOpbnYeAAnmZQ/exec";
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzejuoJFQDVLsSySSKS2o9cSXbYWKWGhI5dcZYMJuzwKd5rYWJnUTyXgPVCeJRQk4Gwzw/exec";
     let respuestas = [];
 
     function guardarOpinion(valor) {
@@ -87,7 +87,6 @@
           "Content-Type": "application/json"
         }
       })
-      .then(res => res.text())
       .then(() => {
         respuestas.push(data);
         mostrarMensaje("¡Gracias por tu opinión!");
@@ -165,4 +164,3 @@
   </script>
 </body>
 </html>
-
