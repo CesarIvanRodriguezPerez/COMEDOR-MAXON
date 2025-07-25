@@ -2,95 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <title>Opinión del Comedor Maxon</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
+    html, body {
+      height: 100%;
+      margin: 0; padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #f0f0f0;
+      font-family: sans-serif;
+    }
+
+    .container {
       text-align: center;
-      background-color: #f4f4f4;
-      padding: 20px;
     }
 
-    h1 {
-      color: #333;
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
     }
 
-    .emoji-container {
-      margin: 30px 0;
-    }
-
-    .emoji {
-      font-size: 50px;
-      cursor: pointer;
+    .emoji-button {
+      font-size: 40px;
       margin: 10px;
+      cursor: pointer;
+      background: none;
+      border: none;
       transition: transform 0.2s;
     }
 
-    .emoji:hover {
+    .emoji-button:hover {
       transform: scale(1.2);
-    }
-
-    .selected {
-      transform: scale(1.3);
-      border: 2px solid #555;
-      border-radius: 50%;
-      padding: 10px;
-    }
-
-    .message {
-      font-size: 18px;
-      color: green;
-      margin-top: 20px;
     }
   </style>
 </head>
 <body>
-  <h1>¿Qué te pareció la comida de hoy?</h1>
-  <div class="emoji-container">
-    <span class="emoji" data-opinion="Excelente">😋</span>
-    <span class="emoji" data-opinion="Buena">😊</span>
-    <span class="emoji" data-opinion="Regular">😐</span>
-    <span class="emoji" data-opinion="Mala">😣</span>
-    <span class="emoji" data-opinion="Muy mala">🤢</span>
+  <div class="container">
+    <div class="title">¿Cómo estuvo tu comida?</div>
+    <div>
+      <button class="emoji-button" onclick="enviarOpinion('😠')">😠</button>
+      <button class="emoji-button" onclick="enviarOpinion('😐')">😐</button>
+      <button class="emoji-button" onclick="enviarOpinion('😊')">😊</button>
+    </div>
+    <p id="mensaje"></p>
   </div>
-  <div class="message" id="message"></div>
 
   <script>
-    const emojis = document.querySelectorAll('.emoji');
-    const message = document.getElementById('message');
+    function enviarOpinion(opinion) {
+      const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
 
-    emojis.forEach(emoji => {
-      emoji.addEventListener('click', () => {
-        // Elimina selección previa
-        emojis.forEach(e => e.classList.remove('selected'));
-        emoji.classList.add('selected');
-
-        const opinion = emoji.getAttribute('data-opinion');
-        const fecha = new Date().toLocaleString();
-
-        // Enviar datos al Google Apps Script
-        fetch("https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: `opinion=${encodeURIComponent(opinion)}&fecha=${encodeURIComponent(fecha)}`
-        })
-        .then(response => response.text())
-        .then(data => {
-          message.textContent = "¡Gracias por tu opinión!";
-          setTimeout(() => {
-            message.textContent = "";
-            emoji.classList.remove("selected");
-          }, 2500);
-        })
-        .catch(error => {
-          message.textContent = "Hubo un error al enviar tu opinión.";
-          console.error(error);
-        });
+      fetch("https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ opinion, fecha }),
       });
-    });
+
+      document.getElementById("mensaje").textContent = "¡Gracias por tu opinión!";
+    }
   </script>
 </body>
 </html>
