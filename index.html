@@ -5,15 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <title>Opinión del Comedor Maxon</title>
   <style>
-    html, body {
-      height: 100%;
-      margin: 0; padding: 0;
-    }
+    /* Igual que antes */
+    html, body { height: 100%; margin: 0; padding: 0; }
     body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
       font-family: Arial, sans-serif;
       background-color: #FFF9C4;
       color: #333;
@@ -21,19 +16,11 @@
       text-align: center;
       user-select: none;
     }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 40px;
-    }
+    h1 { font-size: 3rem; margin-bottom: 40px; }
     .emoji {
-      font-size: 10rem;
-      cursor: pointer;
-      margin: 30px;
-      transition: transform 0.2s;
+      font-size: 10rem; cursor: pointer; margin: 30px; transition: transform 0.2s;
     }
-    .emoji:hover {
-      transform: scale(1.2);
-    }
+    .emoji:hover { transform: scale(1.2); }
     .mensaje {
       margin-top: 30px;
       font-size: 2rem;
@@ -52,9 +39,7 @@
       box-shadow: 0 3px 7px rgba(0,0,0,0.3);
       user-select: none;
     }
-    #exportar:hover {
-      background-color: #d4ac0d;
-    }
+    #exportar:hover { background-color: #d4ac0d; }
   </style>
 </head>
 <body>
@@ -74,22 +59,20 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString();
-      const data = {
-        opinion: valor,
-        fecha: fecha
-      };
+      const formData = new FormData();
+      formData.append("opinion", valor);
+      formData.append("fecha", fecha);
 
       fetch(scriptURL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: formData
       })
       .then(res => {
         if (!res.ok) throw new Error("Respuesta no OK");
         return res.text();
       })
       .then(() => {
-        respuestas.push(data);
+        respuestas.push({ opinion: valor, fecha: fecha });
         mostrarMensaje("¡Gracias por tu opinión!");
       })
       .catch(err => {
@@ -163,4 +146,3 @@
   </script>
 </body>
 </html>
-
