@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <title>Opinión del Comedor Maxon</title>
   <style>
-    /* Igual que antes */
     html, body { height: 100%; margin: 0; padding: 0; }
     body {
       display: flex; flex-direction: column; justify-content: center; align-items: center;
@@ -54,31 +53,12 @@
   <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbz9IR0WcnL0ca2VeNrMHVuxNASpurdtQ0djGAwLuqIsdWGBLzI5JGrBDLxu4ZZtGdQ7Lw/exec";
     let respuestas = [];
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString();
-      const formData = new FormData();
-      formData.append("opinion", valor);
-      formData.append("fecha", fecha);
-
-      fetch(scriptURL, {
-        method: "POST",
-        body: formData
-      })
-      .then(res => {
-        if (!res.ok) throw new Error("Respuesta no OK");
-        return res.text();
-      })
-      .then(() => {
-        respuestas.push({ opinion: valor, fecha: fecha });
-        mostrarMensaje("¡Gracias por tu opinión!");
-      })
-      .catch(err => {
-        mostrarMensaje("Error al enviar, intenta de nuevo.");
-        console.error("Error:", err);
-      });
+      respuestas.push({ opinion: valor, fecha: fecha });
+      mostrarMensaje("¡Gracias por tu opinión!");
     }
 
     function mostrarMensaje(texto) {
