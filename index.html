@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Opinión del Comedor</title>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
     html, body {
       height: 100%;
@@ -69,6 +67,7 @@
   </div>
 
   <div class="mensaje" id="mensaje" aria-live="polite"></div>
+
   <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
@@ -76,36 +75,47 @@
     let respuestas = [];
 
     function guardarOpinion(valor) {
-      const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      respuestas.push({ opinion: valor, fecha: fecha });
-      mostrarMensaje("¡Gracias por tu opinión!");
-
-      // Enviar a Google Sheets
+      const datos = {
+        opinion: valor
+      };
+      
       fetch(scriptURL, {
         method: "POST",
-        mode: "no-cors",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ opinion: valor, fecha: fecha })
+        body: JSON.stringify(datos),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      .then(res => res.text())
+      .then(() => {
+        respuestas.push({ opinion: valor, fecha: new Date().toLocaleString() });
+        mostrarMensaje("¡Gracias por tu opinión!");
+      })
+      .catch(() => {
+        mostrarMensaje("Error al enviar, intenta de nuevo.");
       });
     }
 
     function mostrarMensaje(texto) {
       const mensajeDiv = document.getElementById('mensaje');
       mensajeDiv.textContent = texto;
-      setTimeout(() => mensajeDiv.textContent = "", 2000);
+      setTimeout(() => {
+        mensajeDiv.textContent = "";
+      }, 2000);
     }
 
-    // Modo admin al presionar 😡
+    // Toggle botón exportar al mantener presionada la carita enojada 2 segundos
     let presionadoTimer;
     const emojiMalo = document.getElementById('emojiMalo');
 
     emojiMalo.addEventListener('mousedown', () => {
       presionadoTimer = setTimeout(() => {
         const boton = document.getElementById('exportar');
-        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
-        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
+        if (boton.style.display === 'none' || boton.style.display === '') {
+          boton.style.display = 'inline-block';
+          mostrarMensaje("Modo administrador activado");
+        } else {
+          boton.style.display = 'none';
+          mostrarMensaje("Modo administrador desactivado");
+        }
       }, 2000);
     });
 
@@ -113,21 +123,35 @@
       clearTimeout(presionadoTimer);
       guardarOpinion('Malo');
     });
-    emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
 
+    emojiMalo.addEventListener('mouseleave', () => {
+      clearTimeout(presionadoTimer);
+    });
+
+    // Para pantallas táctiles
     emojiMalo.addEventListener('touchstart', () => {
       presionadoTimer = setTimeout(() => {
         const boton = document.getElementById('exportar');
-        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
-        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
+        if (boton.style.display === 'none' || boton.style.display === '') {
+          boton.style.display = 'inline-block';
+          mostrarMensaje("Modo administrador activado");
+        } else {
+          boton.style.display = 'none';
+          mostrarMensaje("Modo administrador desactivado");
+        }
       }, 2000);
     });
+
     emojiMalo.addEventListener('touchend', () => {
       clearTimeout(presionadoTimer);
       guardarOpinion('Malo');
     });
-    emojiMalo.addEventListener('touchcancel', () => clearTimeout(presionadoTimer));
 
+    emojiMalo.addEventListener('touchcancel', () => {
+      clearTimeout(presionadoTimer);
+    });
+
+    // Exportar CSV con resumen
     function exportarCSV() {
       if (respuestas.length === 0) {
         alert("No hay respuestas para exportar.");
@@ -146,13 +170,17 @@
         csv += `"${r.fecha}","${r.opinion}"\n`;
       });
 
-      csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
+      csv += `\nResumen\n`;
+      csv += `Bueno,${resumen.Bueno}\n`;
+      csv += `Regular,${resumen.Regular}\n`;
+      csv += `Malo,${resumen.Malo}\n`;
 
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'respuestas_comedor.csv';
+      a.style.display = 'none';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
