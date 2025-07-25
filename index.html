@@ -57,16 +57,13 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString();
+      const formData = new FormData();
+      formData.append("opinion", valor);
+      formData.append("fecha", fecha);
 
       fetch("https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          opinion: valor,
-          fecha: fecha
-        })
+        body: formData
       })
       .then(res => {
         if (!res.ok) throw new Error("Respuesta no OK");
@@ -147,4 +144,3 @@
   </script>
 </body>
 </html>
-
