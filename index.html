@@ -2,69 +2,163 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <title>Opinión del Comedor Maxon</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Opinión del Comedor</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
     html, body {
       height: 100%;
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
+    }
+    body {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      background-color: #f0f0f0;
-      font-family: sans-serif;
-    }
-
-    .container {
+      font-family: Arial, sans-serif;
+      background-color: #FFF9C4;
+      color: #333;
+      padding: 20px;
       text-align: center;
+      user-select: none;
     }
-
-    .title {
-      font-size: 24px;
-      font-weight: bold;
-      margin-bottom: 20px;
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 40px;
     }
-
-    .emoji-button {
-      font-size: 40px;
-      margin: 10px;
+    .emoji {
+      font-size: 10rem;
       cursor: pointer;
-      background: none;
-      border: none;
+      margin: 30px;
       transition: transform 0.2s;
     }
-
-    .emoji-button:hover {
+    .emoji:hover {
       transform: scale(1.2);
+    }
+    .mensaje {
+      margin-top: 30px;
+      font-size: 2rem;
+      color: green;
+      min-height: 2.5rem;
+    }
+    #exportar {
+      display: none;
+      margin-top: 40px;
+      padding: 15px 30px;
+      font-size: 1.5rem;
+      cursor: pointer;
+      background-color: #f0c419;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 3px 7px rgba(0,0,0,0.3);
+      user-select: none;
+    }
+    #exportar:hover {
+      background-color: #d4ac0d;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="title">¿Cómo estuvo tu comida?</div>
-    <div>
-      <button class="emoji-button" onclick="enviarOpinion('😠')">😠</button>
-      <button class="emoji-button" onclick="enviarOpinion('😐')">😐</button>
-      <button class="emoji-button" onclick="enviarOpinion('😊')">😊</button>
-    </div>
-    <p id="mensaje"></p>
+  <h1>¿Cómo fue tu experiencia?</h1>
+  <div>
+    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
+    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
+    <span class="emoji" id="emojiMalo" role="button" aria-label="Malo">😡</span>
   </div>
 
-  <script>
-    function enviarOpinion(opinion) {
-      const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+  <div class="mensaje" id="mensaje" aria-live="polite"></div>
+  <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
-      fetch("https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec", {
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec";
+    let respuestas = [];
+
+    function guardarOpinion(valor) {
+      const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+      respuestas.push({ opinion: valor, fecha: fecha });
+      mostrarMensaje("¡Gracias por tu opinión!");
+
+      // Enviar a Google Sheets
+      fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ opinion, fecha }),
+        body: JSON.stringify({ opinion: valor, fecha: fecha })
+      });
+    }
+
+    function mostrarMensaje(texto) {
+      const mensajeDiv = document.getElementById('mensaje');
+      mensajeDiv.textContent = texto;
+      setTimeout(() => mensajeDiv.textContent = "", 2000);
+    }
+
+    // Modo admin al presionar 😡
+    let presionadoTimer;
+    const emojiMalo = document.getElementById('emojiMalo');
+
+    emojiMalo.addEventListener('mousedown', () => {
+      presionadoTimer = setTimeout(() => {
+        const boton = document.getElementById('exportar');
+        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
+        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
+      }, 2000);
+    });
+
+    emojiMalo.addEventListener('mouseup', () => {
+      clearTimeout(presionadoTimer);
+      guardarOpinion('Malo');
+    });
+    emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
+
+    emojiMalo.addEventListener('touchstart', () => {
+      presionadoTimer = setTimeout(() => {
+        const boton = document.getElementById('exportar');
+        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
+        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
+      }, 2000);
+    });
+    emojiMalo.addEventListener('touchend', () => {
+      clearTimeout(presionadoTimer);
+      guardarOpinion('Malo');
+    });
+    emojiMalo.addEventListener('touchcancel', () => clearTimeout(presionadoTimer));
+
+    function exportarCSV() {
+      if (respuestas.length === 0) {
+        alert("No hay respuestas para exportar.");
+        return;
+      }
+
+      const resumen = { Bueno: 0, Regular: 0, Malo: 0 };
+      respuestas.forEach(r => {
+        if (resumen[r.opinion] !== undefined) {
+          resumen[r.opinion]++;
+        }
       });
 
-      document.getElementById("mensaje").textContent = "¡Gracias por tu opinión!";
+      let csv = "Fecha,Respuesta\n";
+      respuestas.forEach(r => {
+        csv += `"${r.fecha}","${r.opinion}"\n`;
+      });
+
+      csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
+
+      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'respuestas_comedor.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
   </script>
 </body>
 </html>
+
