@@ -57,8 +57,29 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString();
-      respuestas.push({ opinion: valor, fecha: fecha });
-      mostrarMensaje("¡Gracias por tu opinión!");
+
+      fetch("https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          opinion: valor,
+          fecha: fecha
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error("Respuesta no OK");
+        return res.text();
+      })
+      .then(() => {
+        respuestas.push({ opinion: valor, fecha: fecha });
+        mostrarMensaje("¡Gracias por tu opinión!");
+      })
+      .catch(err => {
+        mostrarMensaje("Error al enviar, intenta de nuevo.");
+        console.error("Error:", err);
+      });
     }
 
     function mostrarMensaje(texto) {
@@ -126,3 +147,4 @@
   </script>
 </body>
 </html>
+
