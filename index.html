@@ -60,9 +60,9 @@
 <body>
   <h1>¿Cómo fue tu experiencia?</h1>
   <div>
-    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
-    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
-    <span class="emoji" id="emojiMalo" role="button" aria-label="Malo">😡</span>
+    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno" tabindex="0">😀</span>
+    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular" tabindex="0">😐</span>
+    <span class="emoji" id="emojiMalo" role="button" aria-label="Malo" tabindex="0">😡</span>
   </div>
 
   <div class="mensaje" id="mensaje" aria-live="polite"></div>
@@ -74,15 +74,16 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString();
-const formData = new FormData();
-formData.append("opinion", valor);
-formData.append("fecha", fecha);
+      const data = {
+        opinion: valor,
+        fecha: fecha
+      };
 
-fetch(scriptURL, {
-  method: "POST",
-  body: formData
-})
-
+      fetch(scriptURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      })
       .then(res => {
         if (!res.ok) throw new Error("Respuesta no OK");
         return res.text();
@@ -162,3 +163,4 @@ fetch(scriptURL, {
   </script>
 </body>
 </html>
+
