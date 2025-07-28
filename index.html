@@ -77,24 +77,17 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      const pregunta = document.querySelector('h1').textContent.trim();
-
-      respuestas.push({ opinion: valor, fecha: fecha, pregunta: pregunta });
+      respuestas.push({ opinion: valor, fecha: fecha });
       mostrarMensaje("¡Gracias por tu opinión!");
 
-      // Preparar datos urlencoded
-      const formData = new URLSearchParams();
-      formData.append('opinion', valor);
-      formData.append('fecha', fecha);
-      formData.append('pregunta', pregunta);
-
+      // Enviar a Google Sheets
       fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
         headers: {
-          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+          "Content-Type": "application/json"
         },
-        body: formData.toString()
+        body: JSON.stringify({ opinion: valor, fecha: fecha })
       });
     }
 
@@ -148,9 +141,9 @@
         }
       });
 
-      let csv = "Fecha,Respuesta,Pregunta\n";
+      let csv = "Fecha,Respuesta\n";
       respuestas.forEach(r => {
-        csv += `"${r.fecha}","${r.opinion}","${r.pregunta}"\n`;
+        csv += `"${r.fecha}","${r.opinion}"\n`;
       });
 
       csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
@@ -168,3 +161,4 @@
   </script>
 </body>
 </html>
+
