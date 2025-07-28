@@ -66,7 +66,10 @@
   </style>
 </head>
 <body>
+
+  <!-- Puedes cambiar esta pregunta cuando quieras -->
   <h1>¿Cómo fue tu experiencia?</h1>
+
   <div>
     <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
     <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
@@ -83,19 +86,19 @@
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
       const pregunta = document.querySelector('h1').textContent.trim();
+
       respuestas.push({ opinion: valor, fecha: fecha, pregunta: pregunta });
       mostrarMensaje("¡Gracias por tu opinión!");
 
       fetch(scriptURL, {
         method: "POST",
-        // Si te da problemas CORS, quita "mode: 'no-cors'" y configura bien tu Apps Script
         mode: "no-cors",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ 
-          opinion: valor, 
-          fecha: fecha, 
+        body: JSON.stringify({
+          fecha: fecha,
+          opinion: valor,
           pregunta: pregunta
         })
       });
