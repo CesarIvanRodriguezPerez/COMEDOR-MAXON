@@ -19,10 +19,6 @@
       align-items: center;
       font-family: Arial, sans-serif;
       background-color: #FFF9C4;
-      background-image: url('Maxon.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
       color: #333;
       padding: 20px;
       text-align: center;
@@ -31,7 +27,6 @@
     h1 {
       font-size: 3rem;
       margin-bottom: 40px;
-      color: white;
     }
     .emoji {
       font-size: 10rem;
@@ -66,10 +61,7 @@
   </style>
 </head>
 <body>
-
-  <!-- Puedes cambiar esta pregunta cuando quieras -->
-  <h1 id="pregunta">¿Cómo fue tu experiencia?</h1>
-
+  <h1>¿Cómo fue tu experiencia?</h1>
   <div>
     <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
     <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
@@ -85,23 +77,18 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      // Obtener el texto actual del h1 con id="pregunta"
-      const pregunta = document.getElementById('pregunta').textContent.trim();
-
+      const pregunta = document.querySelector('h1').textContent.trim(); // Obtenemos la pregunta del h1
       respuestas.push({ opinion: valor, fecha: fecha, pregunta: pregunta });
       mostrarMensaje("¡Gracias por tu opinión!");
 
+      // Enviar a Google Sheets incluyendo la pregunta
       fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          fecha: fecha,
-          opinion: valor,
-          pregunta: pregunta
-        })
+        body: JSON.stringify({ opinion: valor, fecha: fecha, pregunta: pregunta })
       });
     }
 
@@ -111,6 +98,7 @@
       setTimeout(() => mensajeDiv.textContent = "", 2000);
     }
 
+    // Modo admin al presionar 😡
     let presionadoTimer;
     const emojiMalo = document.getElementById('emojiMalo');
 
@@ -154,9 +142,9 @@
         }
       });
 
-      let csv = "Fecha,Pregunta,Respuesta\n";
+      let csv = "Fecha,Respuesta,Pregunta\n";
       respuestas.forEach(r => {
-        csv += `"${r.fecha}","${r.pregunta}","${r.opinion}"\n`;
+        csv += `"${r.fecha}","${r.opinion}","${r.pregunta}"\n`;
       });
 
       csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
