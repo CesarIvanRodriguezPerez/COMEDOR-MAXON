@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Opinión del Comedor</title>
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <style>
     html, body {
       height: 100%;
@@ -61,7 +59,7 @@
   </style>
 </head>
 <body>
-  <h1>¿Cómo fue tu experiencia?</h1>
+  <h1 id="pregunta">¿Cómo fue tu experiencia?</h1>
   <div>
     <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
     <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
@@ -72,22 +70,26 @@
   <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec";
+    const scriptURL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // REEMPLAZA CON TU ID
+    const preguntaTexto = document.getElementById("pregunta").textContent;
     let respuestas = [];
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      respuestas.push({ opinion: valor, fecha: fecha });
+      respuestas.push({ opinion: valor, fecha: fecha, pregunta: preguntaTexto });
       mostrarMensaje("¡Gracias por tu opinión!");
 
-      // Enviar a Google Sheets
       fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ opinion: valor, fecha: fecha })
+        body: JSON.stringify({
+          opinion: valor,
+          fecha: fecha,
+          pregunta: preguntaTexto
+        })
       });
     }
 
@@ -97,7 +99,7 @@
       setTimeout(() => mensajeDiv.textContent = "", 2000);
     }
 
-    // Modo admin al presionar 😡
+    // Modo admin
     let presionadoTimer;
     const emojiMalo = document.getElementById('emojiMalo');
 
@@ -108,13 +110,11 @@
         mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
       }, 2000);
     });
-
     emojiMalo.addEventListener('mouseup', () => {
       clearTimeout(presionadoTimer);
       guardarOpinion('Malo');
     });
     emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
-
     emojiMalo.addEventListener('touchstart', () => {
       presionadoTimer = setTimeout(() => {
         const boton = document.getElementById('exportar');
@@ -134,19 +134,10 @@
         return;
       }
 
-      const resumen = { Bueno: 0, Regular: 0, Malo: 0 };
+      let csv = "Fecha,Opinión,Pregunta\n";
       respuestas.forEach(r => {
-        if (resumen[r.opinion] !== undefined) {
-          resumen[r.opinion]++;
-        }
+        csv += `"${r.fecha}","${r.opinion}","${r.pregunta}"\n`;
       });
-
-      let csv = "Fecha,Respuesta\n";
-      respuestas.forEach(r => {
-        csv += `"${r.fecha}","${r.opinion}"\n`;
-      });
-
-      csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
 
       const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -161,4 +152,3 @@
   </script>
 </body>
 </html>
-
