@@ -31,7 +31,7 @@
     h1 {
       font-size: 3rem;
       margin-bottom: 40px;
-      color: white; /* <-- CAMBIO aquí */
+      color: white;
     }
     .emoji {
       font-size: 10rem;
@@ -91,7 +91,11 @@
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ opinion: valor, fecha: fecha })
+        body: JSON.stringify({ 
+          opinion: valor, 
+          fecha: fecha, 
+          pregunta: "¿Cómo fue tu experiencia?" 
+        })
       });
     }
 
