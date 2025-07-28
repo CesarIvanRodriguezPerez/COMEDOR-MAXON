@@ -68,7 +68,7 @@
 <body>
 
   <!-- Puedes cambiar esta pregunta cuando quieras -->
-  <h1>¿Cómo fue tu experiencia?</h1>
+  <h1 id="pregunta">¿Cómo fue tu experiencia?</h1>
 
   <div>
     <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Bueno">😀</span>
@@ -85,7 +85,8 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      const pregunta = document.querySelector('h1').textContent.trim();
+      // Obtener el texto actual del h1 con id="pregunta"
+      const pregunta = document.getElementById('pregunta').textContent.trim();
 
       respuestas.push({ opinion: valor, fecha: fecha, pregunta: pregunta });
       mostrarMensaje("¡Gracias por tu opinión!");
