@@ -77,18 +77,24 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      const pregunta = document.querySelector('h1').textContent.trim(); // Obtenemos la pregunta del h1
+      const pregunta = document.querySelector('h1').textContent.trim();
+
       respuestas.push({ opinion: valor, fecha: fecha, pregunta: pregunta });
       mostrarMensaje("¡Gracias por tu opinión!");
 
-      // Enviar a Google Sheets incluyendo la pregunta
+      // Preparar datos urlencoded
+      const formData = new URLSearchParams();
+      formData.append('opinion', valor);
+      formData.append('fecha', fecha);
+      formData.append('pregunta', pregunta);
+
       fetch(scriptURL, {
         method: "POST",
         mode: "no-cors",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
         },
-        body: JSON.stringify({ opinion: valor, fecha: fecha, pregunta: pregunta })
+        body: formData.toString()
       });
     }
 
