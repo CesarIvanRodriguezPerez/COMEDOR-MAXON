@@ -82,11 +82,13 @@
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
-      respuestas.push({ opinion: valor, fecha: fecha });
+      const pregunta = document.querySelector('h1').textContent.trim();
+      respuestas.push({ opinion: valor, fecha: fecha, pregunta: pregunta });
       mostrarMensaje("¡Gracias por tu opinión!");
 
       fetch(scriptURL, {
         method: "POST",
+        // Si te da problemas CORS, quita "mode: 'no-cors'" y configura bien tu Apps Script
         mode: "no-cors",
         headers: {
           "Content-Type": "application/json"
@@ -94,7 +96,7 @@
         body: JSON.stringify({ 
           opinion: valor, 
           fecha: fecha, 
-          pregunta: "¿Cómo fue tu experiencia?" 
+          pregunta: pregunta
         })
       });
     }
@@ -148,9 +150,9 @@
         }
       });
 
-      let csv = "Fecha,Respuesta\n";
+      let csv = "Fecha,Pregunta,Respuesta\n";
       respuestas.forEach(r => {
-        csv += `"${r.fecha}","${r.opinion}"\n`;
+        csv += `"${r.fecha}","${r.pregunta}","${r.opinion}"\n`;
       });
 
       csv += `\nResumen\nBueno,${resumen.Bueno}\nRegular,${resumen.Regular}\nMalo,${resumen.Malo}\n`;
