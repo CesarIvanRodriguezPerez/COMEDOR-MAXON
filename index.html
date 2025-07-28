@@ -70,7 +70,7 @@
   <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
 
   <script>
-    const scriptURL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // REEMPLAZA CON TU ID
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyfNLBZuvbsLFBZEQgSMsyYpF9eu8jS1EcQhGTDclfsQtGfnqtea79gjKZniRGAbLZX8Q/exec";
     const preguntaTexto = document.getElementById("pregunta").textContent;
     let respuestas = [];
 
@@ -99,7 +99,6 @@
       setTimeout(() => mensajeDiv.textContent = "", 2000);
     }
 
-    // Modo admin
     let presionadoTimer;
     const emojiMalo = document.getElementById('emojiMalo');
 
