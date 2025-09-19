@@ -66,8 +66,8 @@
   </style>
 </head>
 <body>
-  <h1 id="pregunta">¿Cómo calificarías el sazón de la comida que se sirvió?</h1>
-  <div>
+  <h1 id="pregunta"></h1>
+  <div id="opciones">
     <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Buena">😀</span>
     <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
     <span class="emoji" id="emojiMalo" role="button" aria-label="Mala">😡</span>
@@ -78,8 +78,33 @@
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbxjmqPFpONCF3zYTgeeREd5lc_q3a66IGwqONK-HQvo2uklFwJzNzT16YEAh5wQikDwcg/exec";
-    const preguntaTexto = document.getElementById("pregunta").textContent;
     let respuestas = [];
+
+    // Preguntas por día de la semana
+    const preguntas = {
+      1: "¿Cómo calificarías el sazón de la comida que se sirvió?",             // Lunes
+      2: "¿Cómo calificas la cantidad de comida servida (porciones)?",         // Martes
+      3: "¿Qué opinas sobre la variedad de los platillos?",                    // Miércoles
+      4: "¿Qué tan satisfecho estás con la atención del servicio?",            // Jueves
+      5: "¿Consideras que la temperatura de los alimentos al ser servidos es adecuada?" // Viernes
+    };
+
+    // Detectar el día
+    const hoy = new Date().getDay();
+    const preguntaDelDia = preguntas[hoy];
+
+    const preguntaElement = document.getElementById("pregunta");
+    const opcionesDiv = document.getElementById("opciones");
+
+    // Si es sábado (6) o domingo (0), no mostrar nada
+    if (preguntaDelDia) {
+      preguntaElement.textContent = preguntaDelDia;
+    } else {
+      preguntaElement.style.display = "none";
+      opcionesDiv.style.display = "none";
+    }
+
+    let preguntaTexto = preguntaElement.textContent;
 
     function guardarOpinion(valor) {
       const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
@@ -109,30 +134,32 @@
     let presionadoTimer;
     const emojiMalo = document.getElementById('emojiMalo');
 
-    emojiMalo.addEventListener('mousedown', () => {
-      presionadoTimer = setTimeout(() => {
-        const boton = document.getElementById('exportar');
-        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
-        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
-      }, 2000);
-    });
-    emojiMalo.addEventListener('mouseup', () => {
-      clearTimeout(presionadoTimer);
-      guardarOpinion('Malo');
-    });
-    emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
-    emojiMalo.addEventListener('touchstart', () => {
-      presionadoTimer = setTimeout(() => {
-        const boton = document.getElementById('exportar');
-        boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
-        mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
-      }, 2000);
-    });
-    emojiMalo.addEventListener('touchend', () => {
-      clearTimeout(presionadoTimer);
-      guardarOpinion('Malo');
-    });
-    emojiMalo.addEventListener('touchcancel', () => clearTimeout(presionadoTimer));
+    if (emojiMalo) {
+      emojiMalo.addEventListener('mousedown', () => {
+        presionadoTimer = setTimeout(() => {
+          const boton = document.getElementById('exportar');
+          boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
+          mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
+        }, 2000);
+      });
+      emojiMalo.addEventListener('mouseup', () => {
+        clearTimeout(presionadoTimer);
+        guardarOpinion('Malo');
+      });
+      emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
+      emojiMalo.addEventListener('touchstart', () => {
+        presionadoTimer = setTimeout(() => {
+          const boton = document.getElementById('exportar');
+          boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
+          mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
+        }, 2000);
+      });
+      emojiMalo.addEventListener('touchend', () => {
+        clearTimeout(presionadoTimer);
+        guardarOpinion('Malo');
+      });
+      emojiMalo.addEventListener('touchcancel', () => clearTimeout(presionadoTimer));
+    }
 
     function exportarCSV() {
       if (respuestas.length === 0) {
@@ -158,16 +185,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
