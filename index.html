@@ -48,55 +48,39 @@
       padding: 10px;
       border-radius: 8px;
     }
-    #exportar {
-      display: none;
-      margin-top: 40px;
-      padding: 15px 30px;
-      font-size: 1.5rem;
-      cursor: pointer;
-      background-color: #f0c419;
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 3px 7px rgba(0,0,0,0.3);
-      user-select: none;
-    }
-    #exportar:hover {
-      background-color: #d4ac0d;
-    }
   </style>
 </head>
 <body>
   <h1 id="pregunta"></h1>
+
   <div id="opciones">
-    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button" aria-label="Buena">😀</span>
-    <span class="emoji" onclick="guardarOpinion('Regular')" role="button" aria-label="Regular">😐</span>
-    <span class="emoji" id="emojiMalo" role="button" aria-label="Mala">😡</span>
+    <span class="emoji" onclick="guardarOpinion('Bueno')" role="button">😀</span>
+    <span class="emoji" onclick="guardarOpinion('Regular')" role="button">😐</span>
+    <span class="emoji" onclick="guardarOpinion('Malo')" role="button">😡</span>
   </div>
 
-  <div class="mensaje" id="mensaje" aria-live="polite"></div>
-  <button id="exportar" onclick="exportarCSV()">Exportar Respuestas</button>
+  <div class="mensaje" id="mensaje"></div>
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbxjmqPFpONCF3zYTgeeREd5lc_q3a66IGwqONK-HQvo2uklFwJzNzT16YEAh5wQikDwcg/exec";
     let respuestas = [];
+    let puedeVotar = true;
 
-    // Preguntas por día de la semana
+    // Preguntas por día
     const preguntas = {
-      1: "¿Cómo calificarías el sazón de la comida que se sirvió?",             // Lunes
-      2: "¿Cómo calificas la cantidad de comida servida (porciones)?",         // Martes
-      3: "¿Qué opinas sobre la variedad de los platillos?",                    // Miércoles
-      4: "¿Qué tan satisfecho estás con la atención del servicio?",            // Jueves
-      5: "¿Consideras que la temperatura de los alimentos al ser servidos es adecuada?" // Viernes
+      1: "¿Cómo calificarías el sazón de la comida que se sirvió?",
+      2: "¿Cómo calificas la cantidad de comida servida (porciones)?",
+      3: "¿Qué opinas sobre la variedad de los platillos?",
+      4: "¿Qué tan satisfecho estás con la atención del servicio?",
+      5: "¿Consideras que la temperatura de los alimentos al ser servidos es adecuada?"
     };
 
-    // Detectar el día
     const hoy = new Date().getDay();
     const preguntaDelDia = preguntas[hoy];
 
     const preguntaElement = document.getElementById("pregunta");
     const opcionesDiv = document.getElementById("opciones");
 
-    // Si es sábado (6) o domingo (0), no mostrar nada
     if (preguntaDelDia) {
       preguntaElement.textContent = preguntaDelDia;
     } else {
@@ -107,8 +91,26 @@
     let preguntaTexto = preguntaElement.textContent;
 
     function guardarOpinion(valor) {
-      const fecha = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City' });
+
+      if (!puedeVotar) {
+        mostrarMensaje("Espera 30 segundos antes de volver a votar.");
+        return;
+      }
+
+      puedeVotar = false;
+
+      // Desactivar emojis
+      document.querySelectorAll('.emoji').forEach(e => {
+        e.style.pointerEvents = "none";
+        e.style.opacity = "0.5";
+      });
+
+      const fecha = new Date().toLocaleString('es-MX', { 
+        timeZone: 'America/Mexico_City' 
+      });
+
       respuestas.push({ opinion: valor, fecha: fecha, pregunta: preguntaTexto });
+
       mostrarMensaje("¡Gracias por tu opinión!");
 
       fetch(scriptURL, {
@@ -123,64 +125,21 @@
           pregunta: preguntaTexto
         })
       });
+
+      // Reactivar después de 30 segundos
+      setTimeout(() => {
+        puedeVotar = true;
+        document.querySelectorAll('.emoji').forEach(e => {
+          e.style.pointerEvents = "auto";
+          e.style.opacity = "1";
+        });
+      }, 30000);
     }
 
     function mostrarMensaje(texto) {
       const mensajeDiv = document.getElementById('mensaje');
       mensajeDiv.textContent = texto;
       setTimeout(() => mensajeDiv.textContent = "", 2000);
-    }
-
-    let presionadoTimer;
-    const emojiMalo = document.getElementById('emojiMalo');
-
-    if (emojiMalo) {
-      emojiMalo.addEventListener('mousedown', () => {
-        presionadoTimer = setTimeout(() => {
-          const boton = document.getElementById('exportar');
-          boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
-          mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
-        }, 2000);
-      });
-      emojiMalo.addEventListener('mouseup', () => {
-        clearTimeout(presionadoTimer);
-        guardarOpinion('Malo');
-      });
-      emojiMalo.addEventListener('mouseleave', () => clearTimeout(presionadoTimer));
-      emojiMalo.addEventListener('touchstart', () => {
-        presionadoTimer = setTimeout(() => {
-          const boton = document.getElementById('exportar');
-          boton.style.display = (boton.style.display === 'none' || boton.style.display === '') ? 'inline-block' : 'none';
-          mostrarMensaje("Modo administrador " + (boton.style.display === 'inline-block' ? "activado" : "desactivado"));
-        }, 2000);
-      });
-      emojiMalo.addEventListener('touchend', () => {
-        clearTimeout(presionadoTimer);
-        guardarOpinion('Malo');
-      });
-      emojiMalo.addEventListener('touchcancel', () => clearTimeout(presionadoTimer));
-    }
-
-    function exportarCSV() {
-      if (respuestas.length === 0) {
-        alert("No hay respuestas para exportar.");
-        return;
-      }
-
-      let csv = "Fecha,Opinión,Pregunta\n";
-      respuestas.forEach(r => {
-        csv += `"${r.fecha}","${r.opinion}","${r.pregunta}"\n`;
-      });
-
-      const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'respuestas_comedor.csv';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
   </script>
 </body>
