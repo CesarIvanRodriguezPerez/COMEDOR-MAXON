@@ -66,7 +66,6 @@
     let respuestas = [];
     let puedeVotar = true;
 
-    // Preguntas por día
     const preguntas = {
       1: "¿Cómo calificarías el sazón de la comida que se sirvió?",
       2: "¿Cómo calificas la cantidad de comida servida (porciones)?",
@@ -93,13 +92,12 @@
     function guardarOpinion(valor) {
 
       if (!puedeVotar) {
-        mostrarMensaje("Espera 30 segundos antes de volver a votar.");
+        mostrarMensaje("Espera 5 segundos antes de volver a votar.");
         return;
       }
 
       puedeVotar = false;
 
-      // Desactivar emojis
       document.querySelectorAll('.emoji').forEach(e => {
         e.style.pointerEvents = "none";
         e.style.opacity = "0.5";
@@ -126,14 +124,13 @@
         })
       });
 
-      // Reactivar después de 30 segundos
       setTimeout(() => {
         puedeVotar = true;
         document.querySelectorAll('.emoji').forEach(e => {
           e.style.pointerEvents = "auto";
           e.style.opacity = "1";
         });
-      }, 30000);
+      }, 5000); // 🔥 5 segundos
     }
 
     function mostrarMensaje(texto) {
